@@ -66,7 +66,7 @@ const dashboard = {
             title: '',
             type: 'group',
             children: [
-                {
+                /* {
                     id: 'chatflows',
                     title: 'Chatflows',
                     type: 'item',
@@ -74,7 +74,7 @@ const dashboard = {
                     icon: icons.IconHierarchy,
                     breadcrumbs: true,
                     permission: 'chatflows:view'
-                },
+                }, */
                 {
                     id: 'agentflows',
                     title: 'Agentflows',
@@ -102,7 +102,7 @@ const dashboard = {
                     breadcrumbs: true,
                     permission: 'assistants:view'
                 },
-                {
+                /* {
                     id: 'marketplaces',
                     title: 'Marketplaces',
                     type: 'item',
@@ -110,7 +110,7 @@ const dashboard = {
                     icon: icons.IconBuildingStore,
                     breadcrumbs: true,
                     permission: 'templates:marketplace,templates:custom'
-                },
+                }, */
                 {
                     id: 'tools',
                     title: 'Tools',
