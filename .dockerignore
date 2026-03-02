@@ -1,10 +1,17 @@
 node_modules
 dist
 build
-
+.git
+.github
+.husky
+.pnpm-store
+.turbo
 **/node_modules
 **/build
 **/dist
+**/.turbo
+**/.next
 
 packages/server/.env
 packages/ui/.env
+
