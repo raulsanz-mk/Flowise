@@ -37,7 +37,7 @@ import { getAllowedIframeOrigins, getCorsOptions, sanitizeMiddleware } from './u
 
 declare global {
     namespace Express {
-        interface User extends LoggedInUser {}
+        interface User extends LoggedInUser { }
         interface Request {
             user?: LoggedInUser
         }
@@ -378,16 +378,16 @@ let serverApp: App | undefined
 export async function start(): Promise<void> {
     serverApp = new App()
 
-    const host = process.env.HOST
+    const host = process.env.HOST || '0.0.0.0'
     const port = parseInt(process.env.PORT || '', 10) || 3000
     const server = http.createServer(serverApp.app)
 
+    server.listen(port, host, () => {
+        logger.info(`⚡️ [server]: Flowise Server is listening at http://${host}:${port}`)
+    })
+
     await serverApp.initDatabase()
     await serverApp.config()
-
-    server.listen(port, host, () => {
-        logger.info(`⚡️ [server]: Flowise Server is listening at ${host ? 'http://' + host : ''}:${port}`)
-    })
 }
 
 export function getInstance(): App | undefined {
