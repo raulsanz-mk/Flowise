@@ -88,10 +88,6 @@ export class App {
             await this.AppDataSource.runMigrations({ transaction: 'each' })
             logger.info('🔄 [server]: Database migrations completed successfully')
 
-            // Initialize Identity Manager
-            this.identityManager = await IdentityManager.getInstance()
-            logger.info('🔐 [server]: Identity Manager initialized successfully')
-
             // Initialize nodes pool
             this.nodesPool = new NodesPool()
             await this.nodesPool.initialize()
@@ -104,10 +100,6 @@ export class App {
             // Initialize encryption key
             await getEncryptionKey()
             logger.info('🔑 [server]: Encryption key initialized successfully')
-
-            // Initialize auth secrets (env → AWS Secrets Manager → filesystem)
-            await initAuthSecrets()
-            logger.info('🔐 [server]: Auth initialized successfully')
 
             // Initialize Rate Limit
             this.rateLimiterManager = RateLimiterManager.getInstance()
@@ -378,16 +370,21 @@ let serverApp: App | undefined
 export async function start(): Promise<void> {
     serverApp = new App()
 
+    // Initialize auth secrets (env → AWS Secrets Manager → filesystem)
+    await initAuthSecrets()
+    serverApp.identityManager = await IdentityManager.getInstance()
+
     const host = process.env.HOST || '0.0.0.0'
     const port = parseInt(process.env.PORT || '', 10) || 3000
     const server = http.createServer(serverApp.app)
+
+    await serverApp.config()
 
     server.listen(port, host, () => {
         logger.info(`⚡️ [server]: Flowise Server is listening at http://${host}:${port}`)
     })
 
     await serverApp.initDatabase()
-    await serverApp.config()
 }
 
 export function getInstance(): App | undefined {
