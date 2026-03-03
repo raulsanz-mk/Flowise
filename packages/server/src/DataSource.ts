@@ -76,7 +76,8 @@ export const init = async (): Promise<void> => {
                 entities: Object.values(entities),
                 migrations: postgresMigrations,
                 extra: {
-                    idleTimeoutMillis: 120000
+                    idleTimeoutMillis: 120000,
+                    connectionTimeoutMillis: 10000
                 },
                 logging: ['error', 'warn', 'info', 'log'],
                 logger: 'advanced-console',
