@@ -88,18 +88,9 @@ export class App {
             await this.AppDataSource.runMigrations({ transaction: 'each' })
             logger.info('🔄 [server]: Database migrations completed successfully')
 
-            // Initialize nodes pool
-            this.nodesPool = new NodesPool()
-            await this.nodesPool.initialize()
-            logger.info('🔧 [server]: Nodes pool initialized successfully')
-
             // Initialize abort controllers pool
             this.abortControllerPool = new AbortControllerPool()
             logger.info('⏹️ [server]: Abort controllers pool initialized successfully')
-
-            // Initialize encryption key
-            await getEncryptionKey()
-            logger.info('🔑 [server]: Encryption key initialized successfully')
 
             // Initialize Rate Limit
             this.rateLimiterManager = RateLimiterManager.getInstance()
@@ -113,10 +104,6 @@ export class App {
             // Initialize usage cache manager
             this.usageCacheManager = await UsageCacheManager.getInstance()
             logger.info('📊 [server]: Usage cache manager initialized successfully')
-
-            // Initialize telemetry
-            this.telemetry = new Telemetry()
-            logger.info('📈 [server]: Telemetry initialized successfully')
 
             // Initialize SSE Streamer
             this.sseStreamer = new SSEStreamer()
@@ -143,7 +130,7 @@ export class App {
                 logger.info('🔗 [server]: Redis event subscriber connected successfully')
             }
 
-            logger.info('🎉 [server]: All initialization steps completed successfully!')
+            logger.info('🎉 [server]: All database and pool initialization steps completed successfully!')
         } catch (error) {
             logger.error('❌ [server]: Error during Data Source initialization:', error)
         }
@@ -370,7 +357,13 @@ let serverApp: App | undefined
 export async function start(): Promise<void> {
     serverApp = new App()
 
-    // Initialize auth secrets (env → AWS Secrets Manager → filesystem)
+    // 1. Core initializations needed for getRunningExpressApp()
+    await getEncryptionKey()
+    serverApp.nodesPool = new NodesPool()
+    await serverApp.nodesPool.initialize()
+    serverApp.telemetry = new Telemetry()
+
+    // 2. Auth initializations
     await initAuthSecrets()
     serverApp.identityManager = await IdentityManager.getInstance()
 
@@ -378,12 +371,15 @@ export async function start(): Promise<void> {
     const port = parseInt(process.env.PORT || '', 10) || 3000
     const server = http.createServer(serverApp.app)
 
+    // 3. Configure App (routes, middlewares, etc.)
     await serverApp.config()
 
+    // 4. Start listening
     server.listen(port, host, () => {
         logger.info(`⚡️ [server]: Flowise Server is listening at http://${host}:${port}`)
     })
 
+    // 5. Initialize Database in background/afterwards
     await serverApp.initDatabase()
 }
 
